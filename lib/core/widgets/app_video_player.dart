@@ -16,12 +16,18 @@ class AppVideoPlayer extends StatefulWidget {
     super.key,
     required this.url,
     this.aspectRatio = 16 / 9,
+    this.autoPlay = false,
   });
 
   final String url;
 
   /// Fallback aspect ratio used before the video metadata loads.
   final double aspectRatio;
+
+  /// Starts playback as soon as the video is ready. Off by default so an
+  /// embedded player never starts making noise on its own; the fullscreen
+  /// viewer turns it on.
+  final bool autoPlay;
 
   @override
   State<AppVideoPlayer> createState() => _AppVideoPlayerState();
@@ -48,20 +54,29 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
       });
       return;
     }
-    final controller = VideoPlayerController.networkUrl(uri);
+    VideoPlayerController? controller;
     try {
+      // Created inside the guard: if the platform channel is unavailable the
+      // constructor itself throws, and that must degrade to the fallback rather
+      // than take down the page.
+      controller = VideoPlayerController.networkUrl(uri);
       await controller.initialize();
       if (!mounted) {
         await controller.dispose();
         return;
       }
       controller.addListener(_onFrame);
+      if (widget.autoPlay) {
+        // Autoplay may be refused until the first user interaction on some
+        // mobile browsers; the play button remains available either way.
+        await controller.play();
+      }
       setState(() {
         _controller = controller;
         _initializing = false;
       });
     } catch (_) {
-      await controller.dispose();
+      await controller?.dispose();
       if (mounted) {
         setState(() {
           _initializing = false;

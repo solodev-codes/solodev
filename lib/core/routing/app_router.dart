@@ -8,6 +8,7 @@ import '../../features/services/services_screen.dart';
 import '../../features/services/service_detail_screen.dart';
 import '../../features/projects/projects_screen.dart';
 import '../../features/projects/project_detail_screen.dart';
+import '../../features/projects/video_view_screen.dart';
 import '../../features/certificates/certificates_screen.dart';
 import '../../features/certificates/certificate_detail_screen.dart';
 import '../../features/contact/contact_screen.dart';
@@ -133,6 +134,13 @@ final GoRouter appRouter = GoRouter(
           },
         ),
       ],
+    ),
+    GoRoute(
+      path: '/watch',
+      builder: (context, state) => VideoViewScreen(
+        url: state.uri.queryParameters['video'] ?? '',
+        title: state.uri.queryParameters['title'] ?? '',
+      ),
     ),
     GoRoute(
       path: '/about',

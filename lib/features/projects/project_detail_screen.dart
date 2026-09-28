@@ -204,7 +204,24 @@ class ProjectDetailScreen extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.only(
                                 bottom: AppConstants.space16),
-                            child: AppVideoPlayer(url: url),
+                            child: Stack(
+                              children: [
+                                AppVideoPlayer(url: url),
+                                // Sits in the top-right, away from the
+                                // player's centre play button and its bottom
+                                // scrubber, so it never swallows a tap meant
+                                // for playback.
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: _OpenFullscreenButton(
+                                    onPressed: () => context.push(
+                                      _watchLocation(url, project.title),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                       ],
                     ),
@@ -510,6 +527,53 @@ class ProjectDetailScreen extends ConsumerWidget {
                   color: AppColors.textSecondaryDark, fontSize: 12),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Builds the deep link to the fullscreen viewer.
+///
+/// Both values are encoded because a video URL carries `://`, `?` and `&`
+/// characters that would otherwise be parsed as query syntax.
+String _watchLocation(String videoUrl, String title) {
+  return '/watch'
+      '?video=${Uri.encodeComponent(videoUrl)}'
+      '&title=${Uri.encodeComponent(title)}';
+}
+
+/// Expand affordance overlaid on an embedded player.
+class _OpenFullscreenButton extends StatelessWidget {
+  const _OpenFullscreenButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.black.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(AppConstants.radiusFull),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppConstants.radiusFull),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.fullscreen_rounded, color: Colors.white, size: 16),
+              SizedBox(width: 6),
+              Text(
+                'Fullscreen',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
