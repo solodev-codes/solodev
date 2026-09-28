@@ -11,6 +11,7 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+.PROJECT_SPEC.md
 
 # IntelliJ related
 *.iml
@@ -115,3 +116,6 @@ lcov.info
 
 # Leftover `firebase init hosting` scaffold, not part of the application.
 /y/
+
+# Rendered e-mail templates produced by tool/render_email_templates.js
+/tool/email_samples/

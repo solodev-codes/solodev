@@ -21,8 +21,13 @@ const _tolerance = 42;
 
 void main() {
   const masterPath = 'assets/branding/Solodev_logo_master.png';
-  const outputPath = 'assets/images/solodev_mark.png';
+  const markPath = 'assets/images/solodev_mark.png';
+  const platePath = 'assets/branding/solodev_icon_plate.png';
   const outputSize = 512;
+  const plateSize = 1024;
+  // Launcher icons and the web favicon need an opaque, light plate: the mark
+  // itself is a mid-dark slate (#384d66) that would disappear on a dark plate.
+  const plateColour = <int>[0xea, 0xea, 0xec];
 
   final master = File(masterPath);
   if (!master.existsSync()) {
@@ -34,42 +39,78 @@ void main() {
   final width = image.width;
   final height = image.height;
 
-  // The border colour is the average of the four corners.
-  final corners = [
-    _rgba(image, 0, 0),
-    _rgba(image, width - 1, 0),
-    _rgba(image, 0, height - 1),
-    _rgba(image, width - 1, height - 1),
-  ];
-  var sr = 0, sg = 0, sb = 0, sa = 0;
-  for (final c in corners) {
-    sr += (c >> 24) & 0xff;
-    sg += (c >> 16) & 0xff;
-    sb += (c >> 8) & 0xff;
-    sa += c & 0xff;
+  // A source that is already transparent needs no flood fill, so the artwork is
+  // never touched.
+  if (_hasTransparentBorder(image)) {
+    stdout.writeln('Source is already transparent: flood fill skipped.');
+  } else {
+    // The border colour is the average of the four corners.
+    final corners = [
+      _rgba(image, 0, 0),
+      _rgba(image, width - 1, 0),
+      _rgba(image, 0, height - 1),
+      _rgba(image, width - 1, height - 1),
+    ];
+    var sr = 0, sg = 0, sb = 0, sa = 0;
+    for (final c in corners) {
+      sr += (c >> 24) & 0xff;
+      sg += (c >> 16) & 0xff;
+      sb += (c >> 8) & 0xff;
+      sa += c & 0xff;
+    }
+    final seed = ((sr ~/ 4) << 24) | ((sg ~/ 4) << 16) | ((sb ~/ 4) << 8) | (sa ~/ 4);
+    final cleared = _floodBackground(image, seed);
+    stdout.writeln('Background pixels cleared: $cleared of ${width * height}');
   }
-  final seed = ((sr ~/ 4) << 24) | ((sg ~/ 4) << 16) | ((sb ~/ 4) << 8) | (sa ~/ 4);
 
-  final cleared = _floodBackground(image, seed);
   final trimmed = _contentBox(image);
+  final mark = _fit(image, trimmed, outputSize);
+  File(markPath).writeAsBytesSync(img.encodePng(mark));
+  stdout.writeln('Wrote $markPath (${mark.width}x${mark.height})');
+  stdout.writeln('Content box: ${trimmed.width}x${trimmed.height} '
+      'at (${trimmed.x}, ${trimmed.y})');
 
-  final cropped = img.copyCrop(
-    image,
-    x: trimmed.x,
-    y: trimmed.y,
-    width: trimmed.width,
-    height: trimmed.height,
+  final plate = _fit(image, trimmed, plateSize);
+  // Fill first, then composite the mark over it. `BlendMode.direct` would
+  // overwrite the fill with the mark's own transparent pixels.
+  img.fill(
+    plate,
+    color: img.ColorRgba8(plateColour[0], plateColour[1], plateColour[2], 255),
   );
+  img.compositeImage(plate, mark);
+  File(platePath).writeAsBytesSync(img.encodePng(plate));
+  stdout.writeln('Wrote $platePath (${plate.width}x${plate.height})');
+}
 
-  // Scale to fit inside the square canvas without distorting the artwork, then
-  // centre it on a transparent canvas. A hair of even padding keeps the mark
-  // off the very edge so nothing clips when it is scaled up.
+/// Whether the outermost pixels are already transparent.
+bool _hasTransparentBorder(img.Image image) {
+  final w = image.width;
+  final h = image.height;
+  var transparent = 0;
+  var sampled = 0;
+  for (var x = 0; x < w; x += 4) {
+    sampled += 2;
+    if (image.getPixel(x, 0).a.toInt() < 8) transparent++;
+    if (image.getPixel(x, h - 1).a.toInt() < 8) transparent++;
+  }
+  return sampled > 0 && transparent / sampled > 0.5;
+}
+
+/// Scales a cropped region to fit a square canvas, centred, with a hair of
+/// even padding so the mark never touches the edge.
+img.Image _fit(img.Image source, _Box box, int size) {
   const padding = 0.02;
-  final available = (outputSize * (1 - padding * 2)).round();
-  final scale = available /
-      (trimmed.width > trimmed.height ? trimmed.width : trimmed.height);
-  final scaledWidth = (trimmed.width * scale).round();
-  final scaledHeight = (trimmed.height * scale).round();
+  final cropped = img.copyCrop(
+    source,
+    x: box.x,
+    y: box.y,
+    width: box.width,
+    height: box.height,
+  );
+  final available = (size * (1 - padding * 2)).round();
+  final scale = available / (box.width > box.height ? box.width : box.height);
+  final scaledWidth = (box.width * scale).round();
+  final scaledHeight = (box.height * scale).round();
   final resized = img.copyResize(
     cropped,
     width: scaledWidth,
@@ -77,21 +118,15 @@ void main() {
     interpolation: img.Interpolation.cubic,
   );
 
-  final canvas = img.Image(width: outputSize, height: outputSize, numChannels: 4);
+  final canvas = img.Image(width: size, height: size, numChannels: 4);
   img.fill(canvas, color: img.ColorRgba8(0, 0, 0, 0));
   img.compositeImage(
     canvas,
     resized,
-    dstX: (outputSize - scaledWidth) ~/ 2,
-    dstY: (outputSize - scaledHeight) ~/ 2,
+    dstX: (size - scaledWidth) ~/ 2,
+    dstY: (size - scaledHeight) ~/ 2,
   );
-
-  File(outputPath).writeAsBytesSync(img.encodePng(canvas));
-  stdout.writeln('Wrote $outputPath (${canvas.width}x${canvas.height})');
-  stdout.writeln('Background pixels cleared: $cleared of ${width * height}');
-  stdout.writeln('Content box: ${trimmed.width}x${trimmed.height} '
-      'at (${trimmed.x}, ${trimmed.y})');
-  stdout.writeln('Placed at ${scaledWidth}x$scaledHeight, centred');
+  return canvas;
 }
 
 /// Packs a pixel's RGBA into one int for cheap comparisons.

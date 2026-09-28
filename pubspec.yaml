@@ -71,7 +71,10 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/branding/Solodev_logo_master.png"
+  # The master is transparent and its slate glyph (#384d66) would vanish on a
+  # dark plate, so launcher and web icons are generated from a flattened copy on
+  # the artwork's own light plate (produced by tool/build_logo_assets.dart).
+  image_path: "assets/branding/solodev_icon_plate.png"
 
   # Android adaptive icon: the mark inset onto the artwork's own light plate
   # colour, so the launcher mask crops nothing and the glyph is never doubled.
@@ -79,16 +82,15 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/images/solodev_mark.png"
   adaptive_icon_foreground_inset: 18
 
-  # iOS icons must be opaque and fill the canvas, so the transparent PNG is
-  # flattened onto the brand background rather than shipped as-is.
+  # Already opaque, so this is a guard for a future master rather than a fix.
   remove_alpha_ios: true
-  background_color_ios: "#0A0E17"
+  background_color_ios: "#EAEAEC"
 
   min_sdk_android: 21
 
   web:
     generate: true
-    image_path: "assets/branding/Solodev_logo_master.png"
+    image_path: "assets/branding/solodev_icon_plate.png"
     background_color: "#0A0E17"
     theme_color: "#0A0E17"
 

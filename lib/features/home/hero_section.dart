@@ -13,7 +13,21 @@ class HeroSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isMobile = ResponsiveLayout.isMobile(context);
+    final width = MediaQuery.sizeOf(context).width;
+    final isMobile = width < AppConstants.mobileBreakpoint;
+    final isTablet = width < AppConstants.tabletBreakpoint;
+    // Three tiers rather than two: 64 px on a 700 px tablet wraps the headline
+    // onto four lines, and 36 px on a large phone wastes the fold.
+    final titleSize = isMobile
+        ? (width < 380 ? 30.0 : 36.0)
+        : isTablet
+            ? 44.0
+            : (width >= AppConstants.desktopBreakpoint ? 64.0 : 56.0);
+    final heroMarkSize = isMobile
+        ? (width < 380 ? 88.0 : 104.0)
+        : isTablet
+            ? 124.0
+            : 148.0;
     final settingsAsync = ref.watch(portfolioSettingsProvider);
     final settings = settingsAsync.valueOrNull;
 
@@ -31,7 +45,7 @@ class HeroSection extends ConsumerWidget {
       width: double.infinity,
       decoration: const BoxDecoration(gradient: AppColors.darkHeroGradient),
       padding: EdgeInsets.symmetric(
-        vertical: isMobile ? 40 : 80,
+        vertical: isMobile ? 40 : (isTablet ? 56 : 80),
         horizontal: 24,
       ),
       child: ResponsiveContainer(
@@ -42,7 +56,7 @@ class HeroSection extends ConsumerWidget {
             // signal, then the headline.
             Animate(
               key: const Key('hero_brand'),
-              child: BrandHeroMark(size: isMobile ? 104 : 148),
+              child: BrandHeroMark(size: heroMarkSize),
             ).scale(
               begin: const Offset(0.82, 0.82),
               curve: Curves.easeOutBack,
@@ -83,9 +97,9 @@ class HeroSection extends ConsumerWidget {
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: isMobile ? 36 : 64,
+                fontSize: titleSize,
                 fontWeight: FontWeight.w900,
-                letterSpacing: -1.5,
+                letterSpacing: isMobile ? -0.5 : -1.5,
                 height: 1.1,
                 color: Colors.white,
               ),

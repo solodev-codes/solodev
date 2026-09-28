@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants/app_colors.dart';
 import '../../core/widgets/navigation_bars.dart';
 import '../../core/widgets/public_footer.dart';
 import '../../data/datasources/portfolio_providers.dart';
@@ -28,6 +29,11 @@ class HomeScreen extends ConsumerWidget {
     // the homepage is never blank.
     final order = ref.watch(portfolioSettingsProvider).valueOrNull?.homeSections ??
         kDefaultHomeSections;
+    // Section rhythm tightens on phones so the first two sections still sit
+    // above the fold.
+    final gap = MediaQuery.sizeOf(context).width < AppConstants.mobileBreakpoint
+        ? AppConstants.space32
+        : AppConstants.space48;
 
     return Scaffold(
       appBar: const PublicNavbar(),
@@ -37,7 +43,7 @@ class HomeScreen extends ConsumerWidget {
           children: [
             const HeroSection(),
             for (final id in order) ...[
-              const SizedBox(height: 60),
+              SizedBox(height: gap),
               _sectionFor(
                 id,
                 servicesAsync: servicesAsync,
@@ -45,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
                 testimonialsAsync: testimonialsAsync,
               ),
             ],
-            const SizedBox(height: 60),
+            const SizedBox(height: AppConstants.space48),
             const PublicFooter(),
           ],
         ),

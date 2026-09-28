@@ -8,107 +8,166 @@ import '../../features/search/global_search_dialog.dart';
 class PublicNavbar extends StatelessWidget implements PreferredSizeWidget {
   const PublicNavbar({super.key});
 
+  /// The bar height scales with the viewport, so the header never feels cramped
+  /// on a phone nor oversized on a desktop.
+  static double _barHeight(double width) {
+    if (width >= AppConstants.tabletBreakpoint) return 72;
+    if (width >= AppConstants.mobileBreakpoint) return 64;
+    return 60;
+  }
+
   @override
-  Size get preferredSize => const Size.fromHeight(70);
+  Size get preferredSize => Size.fromHeight(_barHeight(_viewportWidth()));
+
+  /// Viewport width without needing a [BuildContext], which the AppBar reads
+  /// this value through before the widget is built.
+  static double _viewportWidth() {
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    return view.physicalSize.width / view.devicePixelRatio;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    // Below 360 logical pixels even the wordmark no longer fits beside the
+    // drawer button and the search action, so the mark stands on its own.
+    final showWordmark = width >= 360;
+
+    return AppBar(
+      toolbarHeight: _barHeight(width),
+      titleSpacing: width < AppConstants.mobileBreakpoint ? 12 : 20,
+      // Flexible lets the title shrink instead of overflowing the toolbar
+      // when the viewport is narrow.
+      title: Flexible(
+        child: _Brand(
+          showWordmark: showWordmark,
+          onTap: () => context.go('/'),
+        ),
+      ),
+      actions: _actionsFor(context, width),
+    );
+  }
+
+  /// Picks a link set that is guaranteed to fit.
+  ///
+  /// The eight-destination bar needs roughly 1,100 px once the brand, drawer
+  /// button, search and call-to-action are accounted for, so the destinations
+  /// are revealed progressively and the rest live behind the overflow menu.
+  List<Widget> _actionsFor(BuildContext context, double width) {
+    final isMobile = width < AppConstants.mobileBreakpoint;
+    final dense = width < 820;
+    final showAllLinks = width >= AppConstants.wideNavBreakpoint;
+    final showPrimaryLinks = width >= 900;
+
+    return [
+      if (showAllLinks) ...const <Widget>[
+          _NavLink(label: 'Home', path: '/'),
+          _NavLink(label: 'About', path: '/about'),
+          _NavLink(label: 'Services', path: '/services'),
+          _NavLink(label: 'Projects', path: '/projects'),
+          _NavLink(label: 'Experience', path: '/experience'),
+          _NavLink(label: 'Achievements', path: '/achievements'),
+          _NavLink(label: 'Certificates', path: '/certificates'),
+          _NavLink(label: 'Contact', path: '/contact'),
+        ] else if (showPrimaryLinks) ...const <Widget>[
+          _NavLink(label: 'Home', path: '/'),
+          _NavLink(label: 'Projects', path: '/projects'),
+          _MoreMenu(),
+        ] else if (!isMobile) ...const <Widget>[
+          _NavLink(label: 'Projects', path: '/projects'),
+          _MoreMenu(),
+        ],
+      if (!isMobile) ...[
+        const SizedBox(width: 4),
+        _HireButton(compact: dense),
+      ],
+      IconButton(
+        tooltip: 'Search portfolio',
+        onPressed: () => GlobalSearchDialog.show(context),
+        icon: const Icon(Icons.search_rounded, color: AppColors.accentCyan),
+      ),
+      SizedBox(width: isMobile ? 4 : 12),
+    ];
+  }
+}
+
+/// The wordmark is split in two spans so the "DEV" half carries the accent.
+class _Brand extends StatelessWidget {
+  const _Brand({required this.onTap, required this.showWordmark});
+
+  final VoidCallback onTap;
+  final bool showWordmark;
 
   @override
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
-
-    return AppBar(
-      title: InkWell(
-        // Administrator entry point: deliberately undiscoverable. A long-press
-        // on the brand mark opens the login route rather than advertising the
-        // admin surface to every visitor.
-        onLongPress: () => context.go('/admin/login'),
-        onTap: () => context.go('/'),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const BrandLogo(size: 36),
-            const SizedBox(width: 10),
-            RichText(
-              text: const TextSpan(
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                  color: Colors.white,
-                ),
-                children: [
-                  TextSpan(text: 'SOLO'),
-                  TextSpan(
-                    text: 'DEV',
-                    style: TextStyle(color: AppColors.accentCyan),
+    return InkWell(
+      // Administrator entry point: deliberately undiscoverable. A long-press
+      // on the brand mark opens the login route rather than advertising the
+      // admin surface to every visitor.
+      onLongPress: () => context.go('/admin/login'),
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          BrandLogo(size: isMobile ? 32 : 38),
+          if (showWordmark) ...[
+            SizedBox(width: isMobile ? 8 : 10),
+            Flexible(
+              child: Text.rich(
+                TextSpan(
+                  style: TextStyle(
+                    fontSize: isMobile ? 17 : 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: isMobile ? 0.3 : 0.5,
+                    color: Colors.white,
                   ),
-                ],
+                  children: const [
+                    TextSpan(text: 'SOLO'),
+                    TextSpan(
+                      text: 'DEV',
+                      style: TextStyle(color: AppColors.accentCyan),
+                    ),
+                  ],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
-        ),
+        ],
       ),
-      actions: isMobile
-          ? _mobileActions(context)
-          : _desktopActions(context, MediaQuery.sizeOf(context).width),
     );
   }
+}
 
-  /// Mobile keeps a single discoverable entry point to global search; every
-  /// other destination lives in [PublicDrawer].
-  List<Widget> _mobileActions(BuildContext context) {
-    return [
-      IconButton(
-        tooltip: 'Search portfolio',
-        onPressed: () => GlobalSearchDialog.show(context),
-        icon: const Icon(Icons.search_rounded, color: AppColors.accentCyan),
-      ),
-      const SizedBox(width: 4),
-    ];
-  }
+/// Primary call to action; tightens its own padding on narrow viewports.
+class _HireButton extends StatelessWidget {
+  const _HireButton({required this.compact});
 
-  /// Adaptive desktop actions: the full link row only renders on wide
-  /// viewports, otherwise the overflow collapses into an overflow menu so the
-  /// AppBar can never overflow horizontally.
-  List<Widget> _desktopActions(BuildContext context, double width) {
-    final isWide = width >= AppConstants.wideNavBreakpoint;
+  final bool compact;
 
-    return [
-      if (isWide) ...[
-        _NavLink(label: 'Home', path: '/'),
-        _NavLink(label: 'About', path: '/about'),
-        _NavLink(label: 'Services', path: '/services'),
-        _NavLink(label: 'Projects', path: '/projects'),
-        _NavLink(label: 'Experience', path: '/experience'),
-        _NavLink(label: 'Achievements', path: '/achievements'),
-        _NavLink(label: 'Certificates', path: '/certificates'),
-        _NavLink(label: 'Contact', path: '/contact'),
-      ] else ...[
-        _NavLink(label: 'Home', path: '/'),
-        _NavLink(label: 'Projects', path: '/projects'),
-        _NavLink(label: 'Contact', path: '/contact'),
-        const _MoreMenu(),
-      ],
-      const SizedBox(width: 8),
-      IconButton(
-        tooltip: 'Search portfolio',
-        onPressed: () => GlobalSearchDialog.show(context),
-        icon: const Icon(Icons.search_rounded, color: AppColors.accentCyan),
-      ),
-      const SizedBox(width: 8),
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: ElevatedButton(
-          onPressed: () => context.go('/contact'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: ResponsiveLayout.isMobile(context) ? 10 : 14),
+      child: ElevatedButton(
+        onPressed: () => context.go('/contact'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          padding: EdgeInsets.symmetric(horizontal: compact ? 14 : 20),
+          minimumSize: const Size(0, 40),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Text(
+          'Hire Me',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: compact ? 13 : 14,
           ),
-          child: const Text('Hire Me',
-              style: TextStyle(fontWeight: FontWeight.bold)),
         ),
       ),
-      const SizedBox(width: 16),
-    ];
+    );
   }
 }
 
@@ -166,17 +225,47 @@ class _NavLink extends StatelessWidget {
 
   const _NavLink({required this.label, required this.path});
 
+  /// Whether [path] is the section currently on screen. `/` only matches
+  /// exactly, so it does not stay lit while browsing nested routes.
+  bool _isActive(String location) =>
+      path == '/' ? location == '/' : location.startsWith(path);
+
   @override
   Widget build(BuildContext context) {
+    final active = _isActive(GoRouterState.of(context).uri.path);
+    final dense = MediaQuery.sizeOf(context).width < 820;
+
     return TextButton(
       onPressed: () => context.go(path),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.textPrimaryDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 15,
-        ),
+      style: TextButton.styleFrom(
+        minimumSize: const Size(0, 40),
+        padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 12),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: active ? AppColors.accentCyan : AppColors.textPrimaryDark,
+              fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+              fontSize: dense ? 14 : 15,
+            ),
+          ),
+          // A short rule under the active destination, rather than shifting the
+          // bar when it appears.
+          const SizedBox(height: 4),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            height: 2,
+            width: active ? 18 : 0,
+            decoration: BoxDecoration(
+              color: AppColors.accentCyan,
+              borderRadius: BorderRadius.circular(AppConstants.radiusFull),
+            ),
+          ),
+        ],
       ),
     );
   }

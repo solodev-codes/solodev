@@ -9,6 +9,14 @@
 /** Cloud Functions deployment region. */
 export const REGION = 'us-central1';
 
+/**
+ * Canonical portfolio URL.
+ *
+ * Used as the call-to-action target and as the identity line in outbound
+ * client e-mail. Keeping it here means the templates never hardcode a host.
+ */
+export const PORTFOLIO_SITE_URL = 'https://solodevportfolio.web.app';
+
 /** Firestore collections managed by the portfolio. */
 export const COLLECTIONS = {
   projects: 'projects',
