@@ -54,23 +54,29 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    # `assets/branding/` is intentionally absent: it holds the full-size master
+    # artwork used only by the icon/splash generators, and is not shipped.
     - assets/images/
-    - assets/icons/
 
 # ---------------------------------------------------------------------------
 # App icon: the Solodev mark, generated for Android (legacy + adaptive + the
 # Android 8 launch shape), iOS (full-bleed, alpha removed) and the web
 # (favicon + PWA manifest icons). Run: dart run flutter_launcher_icons
+#
+# `assets/branding/` holds the untouched master and is deliberately NOT listed
+# under `flutter: assets:` above, so the 711 KB original is never shipped to
+# users. The app itself draws the 512 px transparent mark produced by
+# `tool/build_logo_assets.dart`.
 # ---------------------------------------------------------------------------
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/Solodev_logo.png"
+  image_path: "assets/branding/Solodev_logo_master.png"
 
-  # Android adaptive icon: the mark is inset onto the brand background so no
-  # part of the artwork is clipped by the launcher's mask.
-  adaptive_icon_background: "#0A0E17"
-  adaptive_icon_foreground: "assets/images/Solodev_logo.png"
+  # Android adaptive icon: the mark inset onto the artwork's own light plate
+  # colour, so the launcher mask crops nothing and the glyph is never doubled.
+  adaptive_icon_background: "#EAEAEC"
+  adaptive_icon_foreground: "assets/images/solodev_mark.png"
   adaptive_icon_foreground_inset: 18
 
   # iOS icons must be opaque and fill the canvas, so the transparent PNG is
@@ -82,7 +88,7 @@ flutter_launcher_icons:
 
   web:
     generate: true
-    image_path: "assets/images/Solodev_logo.png"
+    image_path: "assets/branding/Solodev_logo_master.png"
     background_color: "#0A0E17"
     theme_color: "#0A0E17"
 
@@ -93,14 +99,14 @@ flutter_launcher_icons:
 # ---------------------------------------------------------------------------
 flutter_native_splash:
   color: "#0A0E17"
-  image: assets/images/solodev_splash_logo.png
+  image: assets/images/solodev_mark.png
   color_dark: "#0A0E17"
-  image_dark: assets/images/solodev_splash_logo.png
+  image_dark: assets/images/solodev_mark.png
   android: true
   ios: true
   web: false
   android_12:
     color: "#0A0E17"
-    image: assets/images/solodev_splash_logo.png
+    image: assets/images/solodev_mark.png
     color_dark: "#0A0E17"
-    image_dark: assets/images/solodev_splash_logo.png
+    image_dark: assets/images/solodev_mark.png
