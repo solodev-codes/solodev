@@ -36,13 +36,14 @@ class PublicNavbar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       toolbarHeight: _barHeight(width),
       titleSpacing: width < AppConstants.mobileBreakpoint ? 12 : 20,
-      // Flexible lets the title shrink instead of overflowing the toolbar
-      // when the viewport is narrow.
-      title: Flexible(
-        child: _Brand(
-          showWordmark: showWordmark,
-          onTap: () => context.go('/'),
-        ),
+      // The title must NOT be wrapped in Flexible: AppBar lays its title out in
+      // a box-based slot, so a FlexParentData throws "Incorrect use of
+      // ParentDataWidget" and release builds replace the whole title with a grey
+      // error box. Truncation is handled inside _Brand instead, where the Row is
+      // a real Flex parent.
+      title: _Brand(
+        showWordmark: showWordmark,
+        onTap: () => context.go('/'),
       ),
       actions: _actionsFor(context, width),
     );

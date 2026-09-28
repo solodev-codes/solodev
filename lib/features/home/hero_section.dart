@@ -35,9 +35,10 @@ class HeroSection extends ConsumerWidget {
         ? settings.heroTitle.trim()
         : 'Flutter Developer\n& AI Designer';
 
-    final subtitle = (settings != null && settings.heroSubtitle.trim().isNotEmpty)
-        ? settings.heroSubtitle.trim()
-        : AppConstants.appSubheading;
+    final subtitle =
+        (settings != null && settings.heroSubtitle.trim().isNotEmpty)
+            ? settings.heroSubtitle.trim()
+            : AppConstants.appSubheading;
 
     final availableForHire = settings?.availableForHire ?? true;
 
@@ -56,23 +57,27 @@ class HeroSection extends ConsumerWidget {
             // signal, then the headline.
             Animate(
               key: const Key('hero_brand'),
-              child: BrandHeroMark(size: heroMarkSize),
-            ).scale(
-              begin: const Offset(0.82, 0.82),
-              curve: Curves.easeOutBack,
-              alignment: Alignment.center,
-              duration: 700.ms,
-            ).fadeIn(
-              duration: 600.ms,
-            ),
+              child: BrandLogo(size: heroMarkSize),
+            )
+                .scale(
+                  begin: const Offset(0.82, 0.82),
+                  curve: Curves.easeOutBack,
+                  alignment: Alignment.center,
+                  duration: 700.ms,
+                )
+                .fadeIn(
+                  duration: 600.ms,
+                ),
             const SizedBox(height: 28),
             if (availableForHire) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppConstants.radiusFull),
-                  border: Border.all(color: AppColors.accentCyan.withValues(alpha: 0.4)),
+                  border: Border.all(
+                      color: AppColors.accentCyan.withValues(alpha: 0.4)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -142,4 +147,3 @@ class HeroSection extends ConsumerWidget {
     );
   }
 }
-
