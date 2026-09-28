@@ -1,0 +1,117 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ---------------------------------------------------------------------------
+# Firebase / Cloud Functions
+# ---------------------------------------------------------------------------
+# CLI cache, emulator state and debug logs
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+firestore-debug.*.log
+ui-debug.log
+ui-debug.*.log
+database-debug.log
+database-debug.*.log
+pubsub-debug.log
+pubsub-debug.*.log
+
+# Dependencies and compiled output. `lib/` is rebuilt by the predeploy hook
+# (`npm --prefix functions run build`) declared in firebase.json.
+/functions/node_modules/
+/functions/lib/
+/functions/.env
+/functions/.env.*
+
+# ---------------------------------------------------------------------------
+# Firebase platform config — contains project identifiers and API keys.
+# Regenerate for a new machine with: flutterfire configure
+# ---------------------------------------------------------------------------
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
+/lib/firebase_options.dart
+
+# ---------------------------------------------------------------------------
+# Signing material and credentials — never commit these
+# ---------------------------------------------------------------------------
+*.jks
+*.keystore
+key.properties
+*.p12
+*.p8
+*.mobileprovision
+*.cer
+*.pem
+serviceAccount*.json
+*-key.json
+.env
+.env.*
+
+# ---------------------------------------------------------------------------
+# Native build output and machine-local paths
+# ---------------------------------------------------------------------------
+/ios/Pods/
+/ios/.symlinks/
+/ios/Flutter/ephemeral/
+/macos/Pods/
+/macos/.symlinks/
+/android/.gradle/
+/android/.cxx/
+/android/local.properties
+.cxx/
+
+# ---------------------------------------------------------------------------
+# Tooling noise
+# ---------------------------------------------------------------------------
+*.log
+.vscode/
+!.vscode/extensions.json
+coverage/
+lcov.info
+
+# Leftover `firebase init hosting` scaffold, not part of the application.
+/y/

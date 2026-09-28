@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// Cloud Storage security rules for the Solodev portfolio platform.
+//
+// Only administrators may write, and every write is bounded by an explicit size
+// cap and content-type allowlist. The allowlist is applied to the shared
+// `isValidUpload()` helper rather than to a single prefix, because a limit that
+// protects one prefix is trivially bypassed by uploading to another.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.role == 'admin' ||
+        firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Maximum accepted object size, enforced for every client upload.
+    function isWithinSizeLimit() {
+      return request.resource.size < 25 * 1024 * 1024;
+    }
+
+    // Accepted upload types: images, video and PDF documents.
+    function hasAllowedContentType() {
+      return request.resource.contentType.matches('image/.*') ||
+             request.resource.contentType.matches('video/.*') ||
+             request.resource.contentType == 'application/pdf';
+    }
+
+    function isValidUpload() {
+      return isWithinSizeLimit() && hasAllowedContentType();
+    }
+
+    // Public portfolio media: cover art, galleries, certificates and avatars.
+    // Publicly readable because these are rendered on the public site.
+    match /portfolio/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidUpload();
+    }
+
+    // Derived thumbnails are produced server-side by Cloud Functions, which use
+    // the Admin SDK and bypass these rules. Clients may only read them.
+    match /thumbnails/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Anything not explicitly modelled above is denied to clients outright.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

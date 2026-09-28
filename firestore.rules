@@ -1,0 +1,172 @@
+rules_version = '2';
+
+// Firestore security rules for the Solodev portfolio platform.
+//
+// Authorisation model
+// -------------------
+//   * Visitors may read a document only when it is explicitly marked
+//     `isPublished == true`. Drafts are never publicly readable.
+//   * An administrator is a caller with a `role == 'admin'` custom claim or an
+//     `admins/{uid}` document. Privileges are granted only from the Firebase
+//     console or the `setAdminClaim` Cloud Function, never from a client, so an
+//     existing admin can never promote another account from the browser.
+//   * Audit and analytics records are written exclusively by Cloud Functions,
+//     which use the Admin SDK and bypass these rules entirely.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isPublishedResource() {
+      return resource.data.isPublished == true;
+    }
+
+    // ================= PUBLIC CONTENT COLLECTIONS =================
+
+    match /projects/{projectId} {
+      allow read: if isPublishedResource() || isAdmin();
+      allow write: if isAdmin();
+      // Visitors may bump the view counter on a published project by exactly
+      // one; no other field may change in the same write (spec section 27).
+      // `.get(...)` tolerates legacy documents that predate the field.
+      allow update: if isPublishedResource() &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['viewsCount']) &&
+        request.resource.data.viewsCount ==
+          resource.data.get('viewsCount', 0) + 1;
+    }
+
+    match /services/{serviceId} {
+      allow read: if isPublishedResource() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /certificates/{certificateId} {
+      allow read: if isPublishedResource() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /achievements/{achievementId} {
+      allow read: if isPublishedResource() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /experiences/{experienceId} {
+      allow read: if isPublishedResource() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /skills/{skillId} {
+      allow read: if isPublishedResource() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /testimonials/{testimonialId} {
+      allow read: if isPublishedResource() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ================= SITE SETTINGS =================
+    // Public read so the portfolio can render administrator-authored copy.
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ================= CONTACT MESSAGES =================
+    // A visitor may create exactly one strictly-shaped "new" enquiry.
+    // `status` is pinned and unknown fields are rejected, so a submission
+    // cannot be pre-marked as handled or padded with forged metadata.
+    // `createdAt` comes from the visitor's device clock, so the freshness
+    // window is symmetric and generous enough to tolerate normal clock skew.
+    // A tight forward bound would reject every submission from a machine
+    // running even slightly ahead of server time.
+    function isValidEnquiry() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+               'name', 'email', 'phone', 'service',
+               'subject', 'message', 'status', 'createdAt'
+             ]) &&
+             d.name is string &&
+             d.name.size() > 1 &&
+             d.name.size() < 100 &&
+             d.email is string &&
+             d.email.matches('.+@.+\\..+') &&
+             d.email.size() < 200 &&
+             d.message is string &&
+             d.message.size() > 5 &&
+             d.message.size() < 4000 &&
+             d.subject is string &&
+             d.subject.size() < 200 &&
+             d.status == 'new' &&
+             d.createdAt is timestamp &&
+             d.createdAt < request.time + duration.value(10, 'm') &&
+             d.createdAt > request.time - duration.value(10, 'm');
+    }
+
+    match /messages/{messageId} {
+      allow create: if isValidEnquiry();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ================= NOTIFICATIONS =================
+    // Visible only to the addressed admin, or to any admin for a broadcast.
+    function isNotificationForCaller() {
+      return !('recipientId' in resource.data) ||
+             resource.data.recipientId == null ||
+             resource.data.recipientId == request.auth.uid;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAdmin() && isNotificationForCaller();
+      allow update: if isAdmin() && isNotificationForCaller();
+      allow create, delete: if false;
+    }
+
+    // ================= MEDIA LIBRARY METADATA =================
+    // Storage paths and filenames are internal, so this is admin-only.
+    match /media/{mediaId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ================= ADMIN DIRECTORY =================
+    // Client writes are refused outright. Allowing them would let any current
+    // administrator promote an arbitrary account to administrator, and would
+    // allow a user to write their own admin document.
+    match /admins/{adminId} {
+      allow read: if (isAuthenticated() && request.auth.uid == adminId) ||
+                     isAdmin();
+      allow write: if false;
+    }
+
+    // ================= AUDIT + ANALYTICS =================
+    // Append-only and function-written, so an administrator cannot erase or
+    // fabricate their own audit trail.
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    // Outbound client e-mail records (spec section 59). Written only by the
+    // `sendClientEmail` callable and the message trigger; administrators may
+    // read the delivery history but nobody may alter it from a client.
+    match /email_logs/{logId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /analytics/{docId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}

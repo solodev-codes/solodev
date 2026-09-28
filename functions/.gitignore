@@ -1,0 +1,18 @@
+# Compiled TypeScript output
+lib/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+firebase-debug.log
+*-debug.log
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+
+# Firebase emulator state
+.firebase/
