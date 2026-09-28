@@ -426,21 +426,11 @@ class _AchievementEditorState extends ConsumerState<_AchievementEditor> {
                 Text(_error!, style: const TextStyle(color: AppColors.error)),
               ],
               const SizedBox(height: AppConstants.space20),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed:
-                        _saving ? null : () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  const Spacer(),
-                  AppButton(
-                    label: _isNew ? 'Add achievement' : 'Save changes',
-                    icon: Icons.check_rounded,
-                    isLoading: _saving,
-                    onPressed: _save,
-                  ),
-                ],
+              AdminEditorActions(
+                onCancel: () => Navigator.of(context).pop(false),
+                onSave: _save,
+                saveLabel: _isNew ? 'Add achievement' : 'Save changes',
+                isSaving: _saving,
               ),
             ],
           ),

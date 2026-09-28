@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/responsive/responsive_layout.dart';
+import '../../core/responsive/responsive_text.dart';
 import '../../core/services/backend_callables.dart';
 import '../../core/widgets/app_widgets.dart';
 import '../../data/datasources/portfolio_providers.dart';
@@ -33,11 +34,9 @@ class AdminDashboardScreen extends ConsumerStatefulWidget {
 class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   bool _refreshingStats = false;
 
-  int _columns(double width) {
-    if (width >= 1200) return 4;
-    if (width >= 720) return 2;
-    return 1;
-  }
+  /// Stat and action tile columns, from the shared breakpoint table so the
+  /// dashboard cannot drift away from the rest of the app.
+  int _columns(double width) => ResponsiveText.gridColumnsFor(width, max: 4);
 
   /// Refreshes the live streams first, then retries the server rollup.
   ///
@@ -320,22 +319,13 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                 },
               ),
               const SizedBox(height: AppConstants.space32),
-              Row(
-                children: [
-                  const Text(
-                    'Latest enquiries',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => context.go('/admin/messages'),
-                    child: const Text('Open inbox'),
-                  ),
-                ],
+              AdminSectionHeader(
+                title: 'Latest enquiries',
+                fontSize: 18,
+                trailing: TextButton(
+                  onPressed: () => context.go('/admin/messages'),
+                  child: const Text('Open inbox'),
+                ),
               ),
               const SizedBox(height: AppConstants.space12),
               messagesAsync.when(
@@ -690,7 +680,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 720 ? 4 : 2;
+        final columns = ResponsiveText.gridColumnsFor(constraints.maxWidth, max: 4);
         return GridView.count(
           crossAxisCount: columns,
           shrinkWrap: true,

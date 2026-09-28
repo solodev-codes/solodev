@@ -73,37 +73,30 @@ class AdminNotificationsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      'Notifications (${docs.length})',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    if (unreadCount > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.accentCyan.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: AppColors.accentCyan.withValues(alpha: 0.4)),
-                        ),
-                        child: Text(
-                          '$unreadCount unread',
-                          style: const TextStyle(
-                            color: AppColors.accentCyan,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                AdminSectionHeader(
+                  title: 'Notifications (${docs.length})',
+                  fontSize: 18,
+                  trailing: unreadCount > 0
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.accentCyan.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color:
+                                    AppColors.accentCyan.withValues(alpha: 0.4)),
                           ),
-                        ),
-                      ),
-                  ],
+                          child: Text(
+                            '$unreadCount unread',
+                            style: const TextStyle(
+                              color: AppColors.accentCyan,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        )
+                      : null,
                 ),
                 const SizedBox(height: AppConstants.space16),
                 ListView.separated(

@@ -77,6 +77,8 @@ class AppConstants {
       'Building modern mobile, web and AI-powered digital experiences with cross-platform excellence.';
 
   // Breakpoints
+  /// Narrowest tier: small phones, where even standard body text crowds a row.
+  static const double compactBreakpoint = 360.0;
   static const double mobileBreakpoint = 600.0;
   static const double tabletBreakpoint = 1024.0;
   static const double desktopBreakpoint = 1440.0;

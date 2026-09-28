@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/responsive/responsive_layout.dart';
+import '../../core/responsive/responsive_text.dart';
 import '../../core/widgets/app_widgets.dart';
 
 /// Width of the persistent desktop sidebar.
@@ -161,6 +162,97 @@ class StatCard extends StatelessWidget {
 /// Putting navigation here rather than in each screen means a new admin page
 /// is one `body:` away and can never ship without consistent navigation,
 /// sign-out or a route back to the live site.
+/// Section heading with an optional trailing action, shared by every admin
+/// list screen.
+///
+/// The title is [Expanded] with an ellipsis, so a long collection name can
+/// never push the action off a narrow screen — the previous inline `Row` plus
+/// `Spacer` could.
+class AdminSectionHeader extends StatelessWidget {
+  const AdminSectionHeader({
+    super.key,
+    required this.title,
+    this.trailing,
+    this.fontSize = 20,
+  });
+
+  final String title;
+  final Widget? trailing;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: ResponsiveText.sizeOf(context, fontSize),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        if (trailing != null) ...[
+          const SizedBox(width: AppConstants.space8),
+          trailing!,
+        ],
+      ],
+    );
+  }
+}
+
+/// Cancel/save row for the editor sheets.
+///
+/// The save button is [Flexible] and the cancel label is [Expanded], so on a
+/// narrow phone the row shrinks inside its bounds instead of overflowing once
+/// the device type scale is applied.
+class AdminEditorActions extends StatelessWidget {
+  const AdminEditorActions({
+    super.key,
+    required this.onCancel,
+    required this.onSave,
+    required this.saveLabel,
+    this.isSaving = false,
+    this.cancelLabel = 'Cancel',
+  });
+
+  final VoidCallback? onCancel;
+  final VoidCallback? onSave;
+  final String saveLabel;
+  final bool isSaving;
+  final String cancelLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: isSaving ? null : onCancel,
+              child: Text(cancelLabel, overflow: TextOverflow.ellipsis),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppConstants.space8),
+        Flexible(
+          child: AppButton(
+            label: saveLabel,
+            icon: Icons.check_rounded,
+            isLoading: isSaving,
+            onPressed: isSaving ? null : onSave,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class AdminShell extends StatelessWidget {
   const AdminShell({
     super.key,

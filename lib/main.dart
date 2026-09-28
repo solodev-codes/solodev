@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/constants/app_colors.dart';
+import 'core/responsive/responsive_text.dart';
 import 'core/routing/app_router.dart';
 import 'core/services/app_check_service.dart';
 import 'core/services/seo/seo_service.dart';
@@ -162,12 +163,17 @@ class SolodevApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark, // Default to futuristic dark
       routerConfig: appRouter,
-      // Wraps every route, dialog and admin screen so a lost connection is
-      // reported once, consistently, from the top of the widget tree
-      // (spec section 61).
-      builder: (context, child) => OfflineNoticeHost(
-        child: child ?? const SizedBox.shrink(),
-      ),
+      builder: (context, child) {
+        final content = child ?? const SizedBox.shrink();
+        return ResponsiveText.scaleSubtree(
+          // Wraps every route, dialog and admin screen so a lost connection is
+          // reported once, consistently, from the top of the widget tree
+          // (spec section 61), and so every screen inherits the device type
+          // scale without opting in.
+          context,
+          OfflineNoticeHost(child: content),
+        );
+      },
     );
   }
 }

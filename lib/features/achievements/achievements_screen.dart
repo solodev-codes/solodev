@@ -94,18 +94,30 @@ class AchievementsScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.accentCyan.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            a.category.toUpperCase(),
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.accentCyan),
+                        // The category is administrator-authored and can be
+                        // long, so it yields to the date instead of pushing it
+                        // off a narrow screen.
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color:
+                                  AppColors.accentCyan.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              a.category.toUpperCase(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.accentCyan),
+                            ),
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: AppConstants.space8),
                         Text(dateStr, style: const TextStyle(color: AppColors.textSecondaryDark, fontSize: 12)),
                       ],
                     ),

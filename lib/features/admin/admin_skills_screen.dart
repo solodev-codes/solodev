@@ -513,21 +513,11 @@ class _SkillEditorState extends ConsumerState<_SkillEditor> {
                 ),
               ],
               const SizedBox(height: AppConstants.space20),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed:
-                        _saving ? null : () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  const Spacer(),
-                  AppButton(
-                    label: _isNew ? 'Add skill' : 'Save changes',
-                    icon: Icons.check_rounded,
-                    isLoading: _saving,
-                    onPressed: _save,
-                  ),
-                ],
+              AdminEditorActions(
+                onCancel: () => Navigator.of(context).pop(false),
+                onSave: _save,
+                saveLabel: _isNew ? 'Add skill' : 'Save changes',
+                isSaving: _saving,
               ),
             ],
           ),

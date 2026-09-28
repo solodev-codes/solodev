@@ -122,23 +122,13 @@ class _AdminProjectsScreenState extends ConsumerState<AdminProjectsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      '${all.length} project${all.length == 1 ? '' : 's'}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const Spacer(),
-                    AppButton(
-                      label: 'New project',
-                      icon: Icons.add_rounded,
-                      onPressed: () => context.go('/admin/projects/new'),
-                    ),
-                  ],
+                AdminSectionHeader(
+                  title: '${all.length} project${all.length == 1 ? '' : 's'}',
+                  trailing: AppButton(
+                    label: 'New project',
+                    icon: Icons.add_rounded,
+                    onPressed: () => context.go('/admin/projects/new'),
+                  ),
                 ),
                 const SizedBox(height: AppConstants.space16),
                 Row(
