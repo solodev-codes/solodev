@@ -54,27 +54,27 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    # `assets/branding/` is intentionally absent: it holds the full-size master
-    # artwork used only by the icon/splash generators, and is not shipped.
-    - assets/images/
+    # The master artwork is rendered at runtime by BrandLogo, so it must ship.
+    # `assets/images/` is deliberately NOT listed: the mark is only read at build
+    # time by the icon and splash generators, and shipping it would add ~170 KB
+    # to every visitor's download for nothing.
+    - assets/branding/
 
 # ---------------------------------------------------------------------------
 # App icon: the Solodev mark, generated for Android (legacy + adaptive + the
 # Android 8 launch shape), iOS (full-bleed, alpha removed) and the web
 # (favicon + PWA manifest icons). Run: dart run flutter_launcher_icons
 #
-# `assets/branding/` holds the untouched master and is deliberately NOT listed
-# under `flutter: assets:` above, so the 711 KB original is never shipped to
-# users. The app itself draws the 512 px transparent mark produced by
-# `tool/build_logo_assets.dart`.
+# The mark is the only source for icons. The app itself renders the untouched
+# master from `assets/branding/`, which is why that folder is listed under
+# `flutter: assets:` above.
 # ---------------------------------------------------------------------------
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  # The master is transparent and its slate glyph (#384d66) would vanish on a
-  # dark plate, so launcher and web icons are generated from a flattened copy on
-  # the artwork's own light plate (produced by tool/build_logo_assets.dart).
-  image_path: "assets/branding/solodev_icon_plate.png"
+  # Icons, the web favicon and the adaptive foreground all come straight from
+  # the mark, with no derived image file kept in the repository.
+  image_path: "assets/images/solodev_mark.png"
 
   # Android adaptive icon: the mark inset onto the artwork's own light plate
   # colour, so the launcher mask crops nothing and the glyph is never doubled.
@@ -90,7 +90,7 @@ flutter_launcher_icons:
 
   web:
     generate: true
-    image_path: "assets/branding/solodev_icon_plate.png"
+    image_path: "assets/images/solodev_mark.png"
     background_color: "#0A0E17"
     theme_color: "#0A0E17"
 
