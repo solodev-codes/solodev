@@ -19,7 +19,7 @@ class BrandLogo extends StatelessWidget {
   const BrandLogo({
     super.key,
     this.size = 36,
-    this.shape = BrandLogoShape.squircle,
+    this.shape = BrandLogoShape.circle,
     this.glow = false,
   });
 
@@ -45,29 +45,36 @@ class BrandLogo extends StatelessWidget {
       clipper: _BrandClipper(shape),
       child: SizedBox.square(
         dimension: size,
-        child: OverflowBox(
-          // Park the magnified canvas at the top-left of the box; the clip
-          // above then trims it back down to the box.
-          alignment: Alignment.topLeft,
-          minWidth: canvasSide,
-          maxWidth: canvasSide,
-          minHeight: canvasSide,
-          maxHeight: canvasSide,
-          child: Transform.translate(
-            // Pull the artwork's own top-left onto the box's top-left.
-            offset: Offset(
-              -canvasSide * ContentFit.artworkLeftFraction,
-              -canvasSide * ContentFit.artworkTopFraction,
-            ),
-            child: Image.asset(
-              assetPath,
-              width: canvasSide,
-              height: canvasSide,
-              // Square canvas into a square box, so filling cannot distort it.
-              fit: BoxFit.fill,
-              filterQuality: FilterQuality.high,
-              // A missing or corrupt asset must never break the navigation bar.
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+        // The plate sits inside the clip, so the off-white is trimmed to the
+        // same silhouette as the artwork and reads as one surface.
+        child: ColoredBox(
+          color: AppColors.brandOffWhite,
+          child: OverflowBox(
+            // Park the magnified canvas at the top-left of the box; the clip
+            // above then trims it back down to the box.
+            alignment: Alignment.topLeft,
+            minWidth: canvasSide,
+            maxWidth: canvasSide,
+            minHeight: canvasSide,
+            maxHeight: canvasSide,
+            child: Transform.translate(
+              // Pull the artwork's own top-left onto the box's top-left.
+              offset: Offset(
+                -canvasSide * ContentFit.artworkLeftFraction,
+                -canvasSide * ContentFit.artworkTopFraction,
+              ),
+              child: Image.asset(
+                assetPath,
+                width: canvasSide,
+                height: canvasSide,
+                // Square canvas into a square box, so neither axis is
+                // distorted.
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.high,
+                // A missing or corrupt asset must never break the navigation
+                // bar; the off-white plate remains visible in its place.
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
             ),
           ),
         ),
@@ -157,7 +164,11 @@ class _BrandClipper extends CustomClipper<Path> {
 /// The large hero mark: the same artwork with a halo, so the homepage leads with
 /// the brand.
 class BrandHeroMark extends StatelessWidget {
-  const BrandHeroMark({super.key, this.size = 140, this.shape = BrandLogoShape.squircle});
+  const BrandHeroMark({
+    super.key,
+    this.size = 140,
+    this.shape = BrandLogoShape.squircle,
+  });
 
   final double size;
   final BrandLogoShape shape;
@@ -170,4 +181,3 @@ class BrandHeroMark extends StatelessWidget {
     );
   }
 }
-

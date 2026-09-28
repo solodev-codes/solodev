@@ -14,6 +14,13 @@ class AppColors {
   static const Color accentCyan = Color(0xFF00E5FF);
   static const Color accentNeon = Color(0xFF00B0FF);
 
+  /// Off-white plate behind the brand mark.
+  ///
+  /// Sampled from the light background the logo was authored on, so the tile and
+  /// any light area inside the artwork are the same tone and read as one
+  /// surface rather than two.
+  static const Color brandOffWhite = Color(0xFFEAEAEC);
+
   // Dark Theme Palette (Deep Navy / Dark Charcoal)
   static const Color darkBackground = Color(0xFF0A0E17);
   static const Color darkSurface = Color(0xFF111827);
